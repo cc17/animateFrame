@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title></title>
+</head>
+<body>
+<div style="height:40px;border:1px solid #000;position:relative;">
+    <div style="height:40px;background:red;width:38px;position:absolute;left:0;top:0;" id="box"></div>
+</div>
+<!-- ball -->
+<div id="field" style="height: 200px;border-bottom: 3px black groove;position: relative;">
+	<img src="ball.gif" width="40" height="40" id="ball" style="position:absolute;top: 0;">
+</div>
+<script type="text/javascript">
+/**
+	opts:{
+	    duration:
+	    delta:
+	    step:
+	    delay
+	}
+**/
+function Animate(opts){
+    var start = new Date().getTime();
+    var timer = setInterval(function(){
+        var timePassed = new Date().getTime() - start;
+        var progress = timePassed / opts.duration;
+        if(progress > 1){
+            progress = 1;
+        }
+        var delta = opts.delta(progress);
+        opts.step.call(opts,delta);
+        if(progress == 1){
+            clearInterval(timer);
+        }
+    },opts.delay || 1000/60);
+};
+var $ = function(id){
+    return document.getElementById(id);
+};
+var Tween = {
+    linear:function(progress){
+        return progress;
+    },
+    quad :function(progress){
+        return Math.pow(progress, 2)
+    },
+    circ : function(progress){
+        return 1 - Math.sin(Math.acos(progress));
+    },
+    back:function(progress,x){
+        x = x || 1.5;
+        return Math.pow(progress, 2) * ((x + 1) * progress - x)
+    },
+    bounce:function(progress){
+      for(var a = 0, b = 1, result; 1; a += b, b /= 2) {
+        if (progress >= (7 - 4 * a) / 11) {
+          return -Math.pow((11 - 6 * a - 11 * progress) / 4, 2) + Math.pow(b, 2)
+        }
+      }
+    },
+    elastic:function(progress, x) {
+        x = x || 1.5;
+        return Math.pow(2, 10 * (progress-1)) * Math.cos(20*Math.PI*x/3*progress)
+    },
+    bounceEaseOut :function(progress){
+        return 1 - Tween.bounce(1 - progress)
+    },
+    bounceEaseInOut :function(progress){
+        if (progress < .5)
+          return Tween.bounce(2*progress) / 2
+        else
+          return (2 - Tween.bounce(2*(1-progress))) / 2;
+    }
+ 
+};
+Animate({
+    elem:$('box'),
+    duration:500,
+    delta:Tween.bounceEaseInOut,
+    step:function(delta){
+        console.log(delta);
+       this.elem.style.left = 400*delta + 'px';
+    }
+});
+
+//ball
+var img = document.getElementById('ball')
+var field = document.getElementById('field')
+img.onclick = function() {
+  var from = 0
+  var to = field.clientHeight - img.clientHeight
+  Animate({
+    delay: 20,
+    duration: 1000,
+	delta: Tween.bounceEaseOut, 
+    step: function(delta) {
+      img.style.top = to*delta + 'px'
+    }
+  })
+};
+
+</script>
+</body>
+</html>
